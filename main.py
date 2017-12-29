@@ -8,6 +8,7 @@ import urllib2
 # for sending images
 from PIL import Image
 import multipart
+import msgResponse
 
 # standard app engine imports
 from google.appengine.api import urlfetch
@@ -41,6 +42,15 @@ def getEnabled(chat_id):
 
 
 # ================================
+class MsgHandler(webapp2.RequestHandler):
+    def get(self):
+        urlfetch.set_default_fetch_deadline(60)
+        msg = self.request.get('msg')
+        if msg:
+            (state, res) = msgResponse.process_msg(msg)
+            response_msg = u'msg = {0} <p> res> <p> {1}'.format(msg, res)
+            self.response.write(response_msg)
+
 
 class MeHandler(webapp2.RequestHandler):
     def get(self):
@@ -128,15 +138,24 @@ class WebhookHandler(webapp2.RequestHandler):
 
         # CUSTOMIZE FROM HERE
 
-        elif 'who are you' in text:
-            reply('telebot starter kit, created by yukuku: https://github.com/yukuku/telebot')
-        elif 'what time' in text:
-            reply('look at the corner of your screen!')
+        (state, res)  = msgResponse.process_msg(text)
+
+        if state is 1:
+            reply(res)
         else:
             if getEnabled(chat_id):
                 reply('I got your message! (but I do not know how to answer)')
             else:
                 logging.info('not enabled for chat_id {}'.format(chat_id))
+        # elif 'who are you' in text:
+        #     reply('telebot starter kit, created by yukuku: https://github.com/yukuku/telebot')
+        # elif 'what time' in text:
+        #     reply('look at the corner of your screen!')
+        # else:
+        #     if getEnabled(chat_id):
+        #         reply('I got your message! (but I do not know how to answer)')
+        #     else:
+        #         logging.info('not enabled for chat_id {}'.format(chat_id))
 
 
 app = webapp2.WSGIApplication([
@@ -144,4 +163,6 @@ app = webapp2.WSGIApplication([
     ('/updates', GetUpdatesHandler),
     ('/set_webhook', SetWebhookHandler),
     ('/webhook', WebhookHandler),
+    ('/msg', MsgHandler),
+
 ], debug=True)

@@ -1,5 +1,5 @@
 application: apex-182218
-version: 1
+version: 2
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -16,8 +16,15 @@ handlers:
 - url: .*
   script: main.app
 
+env_variables:
+  CLOUDSQL_CONNECTION_NAME: apex-182218:asia-northeast1:apex
+  CLOUDSQL_USER: bap
+  CLOUDSQL_PASSWORD: quantum1!
+
 libraries:
 - name: webapp2
   version: "2.5.2"
 - name: PIL
   version: latest
+- name: MySQLdb
+  version: "latest"
