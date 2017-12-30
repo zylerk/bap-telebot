@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import StringIO
 import json
 import logging
@@ -24,7 +26,7 @@ BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
 
 class EnableStatus(ndb.Model):
     # key name: str(chat_id)
-    enabled = ndb.BooleanProperty(indexed=False, default=False)
+    enabled = ndb.BooleanProperty(indexed=True, default=False)
 
 
 # ================================
@@ -33,6 +35,7 @@ def setEnabled(chat_id, yes):
     es = EnableStatus.get_or_insert(str(chat_id))
     es.enabled = yes
     es.put()
+
 
 def getEnabled(chat_id):
     es = EnableStatus.get_by_id(str(chat_id))
@@ -69,7 +72,60 @@ class SetWebhookHandler(webapp2.RequestHandler):
         urlfetch.set_default_fetch_deadline(60)
         url = self.request.get('url')
         if url:
-            self.response.write(json.dumps(json.load(urllib2.urlopen(BASE_URL + 'setWebhook', urllib.urlencode({'url': url})))))
+            self.response.write(
+                json.dumps(json.load(urllib2.urlopen(BASE_URL + 'setWebhook', urllib.urlencode({'url': url})))))
+
+
+class NewsHandler(webapp2.RequestHandler):
+    def get(self):
+        def get_enabled_chats():
+            #get_enabled: 봇이 활성화된 채팅 리스트 반환
+            #return: (list of EnableStatus)
+            #
+            query = EnableStatus.query(EnableStatus.enabled == True)
+            return query.fetch()
+
+        def send_msg(chat_id, text, reply_to=None, no_preview=True, keyboard=None):
+            # send_msg: 메시지 발송
+            # chat_id: (integer) 메시지를 보낼 채팅 ID
+            # text: (string) 메시지 내용
+            # reply_to: (integer) ~메시지에 대한 답장
+            # no_preview: (boolean) URL 자동 링크(미리보기) 끄기
+            # keyboard: (list) 커스텀 키보드 지정
+            #
+
+            params = {
+                'chat_id': str(chat_id),
+                'text': text.encode('utf-8'),
+            }
+            if reply_to:
+                params['reply_to_message_id'] = reply_to
+            if no_preview:
+                params['disable_web_page_preview'] = no_preview
+            if keyboard:
+                reply_markup = json.dumps({
+                    'keyboard': keyboard,
+                    'resize_keyboard': True,
+                    'one_time_keyboard': False,
+                    'selective': (reply_to != None),
+                })
+                params['reply_markup'] = reply_markup
+
+            try:
+                urllib2.urlopen(BASE_URL + 'sendMessage', urllib.urlencode(params)).read()
+            except Exception as e:
+                logging.exception(e)
+
+        def broadcast(text):
+            # broadcast: 봇이 켜져 있는 모든 채팅에 메시지 발송
+            # text: (string) 메시지 내용
+
+            for chat in get_enabled_chats():
+                send_msg(chat.key.string_id(), text)
+
+        urlfetch.set_default_fetch_deadline(60)
+        (state, msg) = msgResponse.process_msg('btc')
+        broadcast(msg)
 
 
 class WebhookHandler(webapp2.RequestHandler):
@@ -109,8 +165,8 @@ class WebhookHandler(webapp2.RequestHandler):
                     ('chat_id', str(chat_id)),
                     ('reply_to_message_id', str(message_id)),
                 ], [
-                    ('photo', 'image.jpg', img),
-                ])
+                                                    ('photo', 'image.jpg', img),
+                                                ])
             else:
                 logging.error('no msg or img specified')
                 resp = None
@@ -128,7 +184,7 @@ class WebhookHandler(webapp2.RequestHandler):
             elif text == '/image':
                 img = Image.new('RGB', (512, 512))
                 base = random.randint(0, 16777216)
-                pixels = [base+i*j for i in range(512) for j in range(512)]  # generate sample image
+                pixels = [base + i * j for i in range(512) for j in range(512)]  # generate sample image
                 img.putdata(pixels)
                 output = StringIO.StringIO()
                 img.save(output, 'JPEG')
@@ -138,13 +194,13 @@ class WebhookHandler(webapp2.RequestHandler):
 
         # CUSTOMIZE FROM HERE
 
-        (state, res)  = msgResponse.process_msg(text)
+        (state, res) = msgResponse.process_msg(text)
 
         if state is 1:
             reply(res)
         else:
             if getEnabled(chat_id):
-                reply('I got your message! (but I do not know how to answer)')
+                reply(u'질문에 답할 수 없어요')
             else:
                 logging.info('not enabled for chat_id {}'.format(chat_id))
         # elif 'who are you' in text:
@@ -164,5 +220,6 @@ app = webapp2.WSGIApplication([
     ('/set_webhook', SetWebhookHandler),
     ('/webhook', WebhookHandler),
     ('/msg', MsgHandler),
+    ('/broadcast-news', NewsHandler),
 
 ], debug=True)

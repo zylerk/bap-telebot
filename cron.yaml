@@ -1,0 +1,6 @@
+cron:
+- description: "broadcast bitcoin news"
+  url: /broadcast-news
+  schedule: every 30 mins from 09:00 to 20:00
+  timezone: Asia/Seoul
+
