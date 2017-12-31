@@ -124,6 +124,11 @@ def process_msg(text):
         r_str += makeResult('ETH')
         r_str += makeResult('XRP')
 
+        diff_spread = u'BTC기준 상대스프레드 ETH={0:.1f}% XRP={1:.1f}%'.format(
+            (res['ETH'][0][5] - res['BTC'][0][5])*100, (res['XRP'][0][5]-res['BTC'][0][5])*100 )
+
+        r_str += diff_spread
+
         # r_str = u'서울시간={v_time}\nBTC={v_btc:,.0f} ({v_btc_krw:,.0f} {v_spread:.1f}%\n'\
         #     .format(v_time=time_seoul, v_btc= res['BTC'][1], v_btc_krw= res['BTC'][2]*res['BTC'][3], v_spread=r[2]*r[3],v_spread=r[5]*100)
 
