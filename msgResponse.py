@@ -112,8 +112,12 @@ def process_msg(text):
 
         def makeResult(vfx):
             str = vfx + ': '
-            str += u'{v_bittrex:,.2f} ({v_bithumb_krw:,.0f}) {v_spread:.1f}%\n' \
-                .format(v_bittrex=res[vfx][0][1], v_bithumb_krw=res[vfx][0][2] * res[vfx][0][3], v_spread=res[vfx][0][5] * 100)
+            if vfx is 'XRP':
+                str += u'{v_bittrex:,.3f} ({v_bithumb_krw:,.0f}) {v_spread:.1f}%\n' \
+                    .format(v_bittrex=res[vfx][0][1], v_bithumb_krw=res[vfx][0][2] * res[vfx][0][3], v_spread=res[vfx][0][5] * 100)
+            else:
+                str += u'{v_bittrex:,.0f} ({v_bithumb_krw:,.0f}) {v_spread:.1f}%\n' \
+                    .format(v_bittrex=res[vfx][0][1], v_bithumb_krw=res[vfx][0][2] * res[vfx][0][3], v_spread=res[vfx][0][5] * 100)
             return str
 
         r_str += makeResult('BTC')
