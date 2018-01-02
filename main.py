@@ -14,35 +14,13 @@ import msgResponse
 
 # standard app engine imports
 from google.appengine.api import urlfetch
-from google.appengine.ext import ndb
 import webapp2
 
+#project lib
+from model import *
+
 TOKEN = '487504665:AAExpqQkIV6arYE38jH8L6DzFJyI4eReRg4'
-
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
-
-
-# ================================
-
-class EnableStatus(ndb.Model):
-    # key name: str(chat_id)
-    enabled = ndb.BooleanProperty(indexed=True, default=False)
-
-
-# ================================
-
-def setEnabled(chat_id, yes):
-    es = EnableStatus.get_or_insert(str(chat_id))
-    es.enabled = yes
-    es.put()
-
-
-def getEnabled(chat_id):
-    es = EnableStatus.get_by_id(str(chat_id))
-    if es:
-        return es.enabled
-    return False
-
 
 # ================================
 class MsgHandler(webapp2.RequestHandler):
@@ -78,12 +56,6 @@ class SetWebhookHandler(webapp2.RequestHandler):
 
 class NewsHandler(webapp2.RequestHandler):
     def get(self):
-        def get_enabled_chats():
-            #get_enabled: 봇이 활성화된 채팅 리스트 반환
-            #return: (list of EnableStatus)
-            #
-            query = EnableStatus.query(EnableStatus.enabled == True)
-            return query.fetch()
 
         def send_msg(chat_id, text, reply_to=None, no_preview=True, keyboard=None):
             # send_msg: 메시지 발송
@@ -181,6 +153,10 @@ class WebhookHandler(webapp2.RequestHandler):
             elif text == '/stop':
                 reply('Bot disabled')
                 setEnabled(chat_id, False)
+
+            elif text == '/account':
+                reply(str(chat_id) + u' class = ' + str(getClass(chat_id)))
+
             elif text == '/image':
                 img = Image.new('RGB', (512, 512))
                 base = random.randint(0, 16777216)
@@ -191,6 +167,8 @@ class WebhookHandler(webapp2.RequestHandler):
                 reply(img=output.getvalue())
             else:
                 reply('What command?')
+
+            return
 
         # CUSTOMIZE FROM HERE
 

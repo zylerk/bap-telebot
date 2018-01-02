@@ -4,6 +4,8 @@ import os
 import datetime
 import MySQLdb
 
+from model import *
+
 # These environment variables are configured in app.yaml.
 CLOUDSQL_CONNECTION_NAME = os.environ.get('CLOUDSQL_CONNECTION_NAME')
 CLOUDSQL_USER = os.environ.get('CLOUDSQL_USER')
@@ -36,7 +38,9 @@ def connect_to_cloudsql():
     return db
 
 
-def process_msg(text):
+def process_msg(text, chat_id=None):
+
+
     text = text.lower()
 
     if 'who' in text:
@@ -131,6 +135,14 @@ def process_msg(text):
 
         # r_str = u'서울시간={v_time}\nBTC={v_btc:,.0f} ({v_btc_krw:,.0f} {v_spread:.1f}%\n'\
         #     .format(v_time=time_seoul, v_btc= res['BTC'][1], v_btc_krw= res['BTC'][2]*res['BTC'][3], v_spread=r[2]*r[3],v_spread=r[5]*100)
+
+        return 1, r_str
+
+    elif 'user' in text or u'사용자' in text:
+        r_str = u'사용자 리스트 \n'
+
+        for chat in get_all_user():
+            r_str += chat.key.string_id() + u'\n'
 
         return 1, r_str
 
