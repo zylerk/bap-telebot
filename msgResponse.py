@@ -56,15 +56,36 @@ def process_msg(text, chat_id=None):
     elif 'btc' in text or u'비트' in text:
         db = connect_to_cloudsql()
         cursor = db.cursor()
-        cursor.execute('select Time, btc_bittrex_usd, btc_bithumb_usd, fx_usdkrw,btc_gap_bittrex_bithumb, btc_spread_bittrex_bithumb  from bap.Price order by Time desc limit 1')
+        current_spread = 0.0
 
+        cursor.execute('select Time, btc_bittrex_usd, btc_bithumb_usd, fx_usdkrw,btc_gap_bittrex_bithumb, btc_spread_bittrex_bithumb  from bap.Price order by Time desc limit 1')
         rows = cursor.fetchall()
         result = ""
         for r in rows:
             time_seoul = r[0] + datetime.timedelta(hours=9)
             r_str = u'서울시간={v_time}\n비트렉스={v_bittrex:,.0f}\n빗섬={v_bithumb:,.0f} ({v_bithumb_krw:,.0f})\n갭={v_gap:,.0f}  스프레드={v_spread:.1f}%'\
                 .format(v_time=time_seoul, v_bittrex= r[1], v_bithumb= r[2], v_bithumb_krw=r[2]*r[3],v_gap = r[4], v_spread=r[5]*100)
+            current_spread = r[5]
             result += r_str + '\n'
+
+        cursor.execute(
+            'select min(btc_spread_bittrex_bithumb), avg(btc_spread_bittrex_bithumb), max(btc_spread_bittrex_bithumb) from bap.Price  where Time > adddate(CURRENT_DATE, -7)')
+        rows = cursor.fetchall()
+        for r in rows:
+            r_str = u'최근7일 스프레드 동향\n최소={v_min:,.0f}% / 평균={v_avg:,.0f}% / 최대={v_max:,.0f}% : 현재={v_current:,.0f}% '\
+                .format(v_min=r[0]*100, v_avg= r[1]*100, v_max= r[2]*100, v_current=current_spread*100)
+            result += r_str + '\n'
+
+        cursor.execute(
+            'select count(Time) from bap.Price  where Time > adddate(CURRENT_DATE, -7)')
+        row_total = cursor.fetchone()
+
+        cursor.execute(
+            'select count(Time) from bap.Price  where Time > adddate(CURRENT_DATE, -7) and btc_spread_bittrex_bithumb >= {v_spread}'.format(v_spread = current_spread))
+        row_current = cursor.fetchone()
+
+        where_percent = float(row_current[0]) / float(row_total[0])
+        result += u'{0:.0f}% 구간에 위치'.format(where_percent * 100) + '\n'
 
         return 1, result
 
@@ -81,6 +102,15 @@ def process_msg(text, chat_id=None):
                 .format(v_time=time_seoul, v_bittrex= r[1], v_bithumb= r[2], v_bithumb_krw=r[2]*r[3],v_gap = r[4], v_spread=r[5]*100)
             result += r_str + '\n'
 
+        cursor.execute(
+            'select min(eth_spread_bittrex_bithumb), avg(eth_spread_bittrex_bithumb), max(eth_spread_bittrex_bithumb) from bap.Price  where Time > adddate(CURRENT_DATE, -7)')
+        rows = cursor.fetchall()
+        for r in rows:
+            r_str = u'최근7일 스프레드 동향\n최소={v_min:,.0f}% / 평균={v_avg:,.0f}% / 최대={v_max:,.0f}%' \
+                .format(v_min=r[0] * 100, v_avg=r[1] * 100, v_max=r[2] * 100)
+            result += r_str + '\n'
+
+
         return 1, result
 
 
@@ -95,6 +125,14 @@ def process_msg(text, chat_id=None):
             time_seoul = r[0] + datetime.timedelta(hours=9)
             r_str = u'서울시간={v_time}\n비트렉스={v_bittrex:,.2f}\n빗섬={v_bithumb:,.2f} ({v_bithumb_krw:,.0f})\n갭={v_gap:,.0f}  스프레드={v_spread:.1f}%'\
                 .format(v_time=time_seoul, v_bittrex= r[1], v_bithumb= r[2], v_bithumb_krw=r[2]*r[3],v_gap = r[4], v_spread=r[5]*100)
+            result += r_str + '\n'
+
+        cursor.execute(
+            'select min(xrp_spread_bittrex_bithumb), avg(xrp_spread_bittrex_bithumb), max(xrp_spread_bittrex_bithumb) from bap.Price  where Time > adddate(CURRENT_DATE, -7)')
+        rows = cursor.fetchall()
+        for r in rows:
+            r_str = u'최근7일 스프레드 동향\n최소={v_min:,.0f}% / 평균={v_avg:,.0f}% / 최대={v_max:,.0f}%' \
+                .format(v_min=r[0] * 100, v_avg=r[1] * 100, v_max=r[2] * 100)
             result += r_str + '\n'
 
         return 1, result
