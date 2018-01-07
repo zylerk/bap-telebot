@@ -1,4 +1,5 @@
-
+# coding: utf-8
+__metaclass__ = type
 
 class BaseClass():
     """description of class"""
@@ -7,7 +8,6 @@ class BaseClass():
 
     def __init__(self):
         self.state = 'ok'
-        return super().__init__()
     
     def ok(self):
         self.state = 'ok'
