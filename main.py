@@ -23,6 +23,7 @@ TOKEN = '487504665:AAExpqQkIV6arYE38jH8L6DzFJyI4eReRg4'
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
 
 # ================================
+# http://localhost:8080/msg?msg=btc
 class MsgHandler(webapp2.RequestHandler):
     def get(self):
         urlfetch.set_default_fetch_deadline(60)

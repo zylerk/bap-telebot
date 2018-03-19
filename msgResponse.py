@@ -2,11 +2,80 @@
 
 import datetime
 from model import *
+
+from base import BaseClass
 from BapDB import BapDB
+
+class MsgProcess(BaseClass):
+    def __init__(self, name):
+        self.name = name
+        super(MsgProcess, self).__init__()
+
+    def checkExist(self, text, cmd):
+        if cmd in text:
+            return True
+        else:
+            return False
+
+    def process_i(self):
+        return
+
+    def process(self, text):
+        if(self.checkExist(text, self.name )):
+            return self.process_i()
+
+
+class MsgCommandList(MsgProcess):
+    def __init__(self):
+        super(MsgCommandList, self).__init__("cmds")
+
+
+class MsgUser(MsgProcess):
+    def __init__(self):
+        super(MsgUser, self).__init__("user")
+
+    def process_i(self):
+        r_str = u'사용자 리스트 \n'
+
+        for chat in get_all_user():
+            r_str += chat.key.string_id() + u'\n'
+
+        return 1, r_str
+
+
+class MsgManager(BaseClass):
+    def __init__(self):
+        self.msg_pool = {}
+
+        cmd = MsgCommandList()
+        self.msg_pool[cmd.name] = cmd
+        cmd = MsgUser()
+        self.msg_pool[cmd.name] = cmd
+
+        super(MsgManager, self).__init__()
+
+    def process(self, text):
+
+        if 'cmds' in text:
+            res = u'Commands \n'
+            for cmd in self.msg_pool:
+                res += self.msg_pool[cmd].name + '\n'
+
+            return 1, res
+
+        for cmd in self.msg_pool:
+            self.msg_pool[cmd].process(text)
+
 
 def process_msg(text, chat_id=None):
 
     text = text.lower()
+
+    #init msg manager
+    msgManager = MsgManager()
+    (state, res) =  msgManager.process(text)
+    if state is 1:
+        return 1, res
 
     if 'who' in text:
         return 1, u'I am Bitoin Trade Bot'
