@@ -87,7 +87,7 @@ def process_msg(text, chat_id=None):
         time_result = u'utc = {0} \n 서울 = {1}'.format(time_utc, time_seoul)
         return 1, time_result
 
-    elif 'btc' in text or u'비트' in text:
+    elif 'btc' in text or u'비트' in text or 'b' in text or 'ㅂ' in text:
         db = BapDB()
         return  db.getInfo('btc')
 
