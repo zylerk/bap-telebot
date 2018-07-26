@@ -72,10 +72,10 @@ def process_msg(text, chat_id=None):
     text = text.lower()
 
     #init msg manager
-    msgManager = MsgManager()
-    (state, res) =  msgManager.process(text)
-    if state is 1:
-        return 1, res
+    #msgManager = MsgManager()
+    #(state, res) =  msgManager.process(text)
+    #if state is 1:
+    #    return 1, res
 
     if 'who' in text:
         return 1, u'I am Bitoin Trade Bot'
