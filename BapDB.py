@@ -93,7 +93,7 @@ class BapDB(DB):
             cursor.execute(q_str)
             rows = cursor.fetchall()
             for r in rows:
-                r_str = u'최근7일 스프레드 동향\n최소={v_min:,.0f}% / 평균={v_avg:,.0f}% / 최대={v_max:,.0f}% : 현재={v_current:,.0f}% ' \
+                r_str = u'최근7일 스프레드 동향\n최소={v_min:,.1f}% / 평균={v_avg:,.1f}% / 최대={v_max:,.1f}% : 현재={v_current:,.1f}% ' \
                     .format(v_min=r[0] * 100, v_avg=r[1] * 100, v_max=r[2] * 100, v_current=current_spread * 100)
                 result += r_str + '\n'
 

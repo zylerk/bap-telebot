@@ -97,7 +97,7 @@ class NewsHandler(webapp2.RequestHandler):
                 send_msg(chat.key.string_id(), text)
 
         urlfetch.set_default_fetch_deadline(60)
-        (state, msg) = msgResponse.process_msg('all')
+        (state, msg) = msgResponse.process_msg('btc')
         broadcast(msg)
 
 
